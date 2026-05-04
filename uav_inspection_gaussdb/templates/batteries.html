@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>电池管理</h1>
+<div class="card">
+    <h2>新增电池</h2>
+    <form method="post">
+        <input name="battery_code" placeholder="电池编码 BAT009" required>
+        <select name="drone_id">
+            <option value="">不绑定无人机</option>
+            {% for d in drones %}
+            <option value="{{ d.drone_id }}">{{ d.drone_code }}</option>
+            {% endfor %}
+        </select>
+        <input name="power_level" type="number" min="0" max="100" placeholder="电量 0-100" required>
+        <input name="cycle_count" type="number" min="0" placeholder="循环次数" value="0" required>
+        <select name="status">
+            <option>可用</option><option>充电中</option><option>损坏</option><option>报废</option>
+        </select>
+        <button type="submit">添加</button>
+    </form>
+</div>
+<div class="card">
+    <h2>电池列表</h2>
+    <p class="muted">业务规则：电量低于 30% 的电池不能用于巡检任务。</p>
+    <table>
+        <tr>
+            <th>ID</th><th>电池编码</th><th>绑定无人机</th><th>电量</th><th>循环次数</th><th>状态</th><th>修改</th>
+        </tr>
+        {% for b in batteries %}
+        <tr>
+            <td>{{ b.battery_id }}</td>
+            <td>{{ b.battery_code }}</td>
+            <td>{{ b.drone_code or '未绑定' }}</td>
+            <td class="{{ 'danger' if b.power_level < 30 else 'ok' }}">{{ b.power_level }}%</td>
+            <td>{{ b.cycle_count }}</td>
+            <td><span class="tag">{{ b.status }}</span></td>
+            <td>
+                <form method="post" action="{{ url_for('update_battery_status', battery_id=b.battery_id) }}">
+                    <input name="power_level" type="number" min="0" max="100" value="{{ b.power_level }}">
+                    <select name="status">
+                        <option>可用</option><option>充电中</option><option>损坏</option><option>报废</option>
+                    </select>
+                    <button>更新</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
